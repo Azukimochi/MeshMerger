@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using System.Linq;
 
 public class MeshMergerProcess : MonoBehaviour
 {
@@ -9,10 +10,9 @@ public class MeshMergerProcess : MonoBehaviour
     {
         // 新しいメッシュを作成
         Mesh combinedMesh = new Mesh();
-        List<Material> materials = new List<Material>();
 
-        // CombineInstance配列とマテリアルリストを作成
-        List<CombineInstance> combineInstances = new List<CombineInstance>();
+        // マテリアルとそれに関連するCombineInstanceを格納するディクショナリ
+        Dictionary<Material, List<CombineInstance>> materialToCombineInstances = new Dictionary<Material, List<CombineInstance>>();
 
         foreach (var gameObject in gameObjects)
         {
@@ -26,7 +26,10 @@ public class MeshMergerProcess : MonoBehaviour
             Material[] localMats = meshRenderer.sharedMaterials;
             for (int materialIndex = 0; materialIndex < localMats.Length; materialIndex++)
             {
-                materials.Add(localMats[materialIndex]);
+                if (!materialToCombineInstances.ContainsKey(localMats[materialIndex]))
+                {
+                    materialToCombineInstances[localMats[materialIndex]] = new List<CombineInstance>();
+                }
 
                 CombineInstance ci = new CombineInstance
                 {
@@ -34,12 +37,31 @@ public class MeshMergerProcess : MonoBehaviour
                     subMeshIndex = materialIndex,
                     transform = gameObject.transform.localToWorldMatrix
                 };
-                combineInstances.Add(ci);
+                materialToCombineInstances[localMats[materialIndex]].Add(ci);
             }
         }
 
-        // メッシュを統合
-        combinedMesh.CombineMeshes(combineInstances.ToArray(), false);
+        // 統合されたメッシュとマテリアルのリスト
+        List<Mesh> combinedMeshes = new List<Mesh>();
+        List<Material> materials = new List<Material>();
+
+        foreach (var materialCombineInstances in materialToCombineInstances)
+        {
+            Mesh combinedMeshForMaterial = new Mesh();
+            combinedMeshForMaterial.CombineMeshes(materialCombineInstances.Value.ToArray(), true);
+            combinedMeshes.Add(combinedMeshForMaterial);
+            materials.Add(materialCombineInstances.Key);
+        }
+
+        // 統合されたメッシュを組み合わせる
+        CombineInstance[] finalCombine = new CombineInstance[combinedMeshes.Count];
+        for (int i = 0; i < combinedMeshes.Count; i++)
+        {
+            finalCombine[i].mesh = combinedMeshes[i];
+            finalCombine[i].transform = Matrix4x4.identity;
+        }
+
+        combinedMesh.CombineMeshes(finalCombine, false, false);
 
         // 新しいメッシュにマテリアルを適用
         GameObject combinedObject = new GameObject("CombinedMesh");
@@ -49,8 +71,6 @@ public class MeshMergerProcess : MonoBehaviour
 
         // 統合したメッシュをアセットとして保存
         AssetDatabase.CreateAsset(combinedMesh, savePath + ".asset");
-
-        // プレハブとして保存
         PrefabUtility.SaveAsPrefabAsset(combinedObject, savePath + ".prefab");
 
         // オブジェクトを削除（オプション）
