@@ -1,0 +1,19 @@
+{
+    "name": "io.github.Azukimochi.MeshMerger.editor",
+    "references": [
+        "UnityEditor.UI",
+        "UnityEngine.UI",
+        "VRC.SDK3",
+        "VRC.SDK3.Editor",
+        "io.github.Azukimochi.MeshMerger.runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

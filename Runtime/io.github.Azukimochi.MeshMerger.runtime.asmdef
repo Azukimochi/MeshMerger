@@ -1,0 +1,16 @@
+{
+    "name": "io.github.Azukimochi.MeshMerger.runtime",
+    "references": [
+        "VRC.SDK3",
+        "VRC.SDK3.Editor"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
